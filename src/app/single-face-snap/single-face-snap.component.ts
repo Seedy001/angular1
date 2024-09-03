@@ -32,8 +32,8 @@ export class SingleFaceSnapComponent implements OnInit {
               private route: ActivatedRoute
   ) {}
   ngOnInit(): void {
-    this.prepareInterface(),
-    this.getFaceSnap()
+    this.prepareInterface();
+    this.getFaceSnap();
   }
 
 

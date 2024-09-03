@@ -1,14 +1,19 @@
 import { Injectable } from "@angular/core";
 import { FaceSnap } from "../models/face-snap";
 import { SnapType } from "../models/snap-type.type";
+import { HttpClient } from "@angular/common/http";
+import { Observable } from "rxjs";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 
 
 export class FaceSnapService {
-  private faceSnaps: FaceSnap[] = [
+
+  constructor(private http: HttpClient) {}
+
+   faceSnaps: FaceSnap[] = [
     new FaceSnap(
       'archibald ',
       'Mon meilleur ami depuis toujours !',
@@ -35,8 +40,8 @@ export class FaceSnapService {
   ];
 
 
-  getFaceSnaps(): FaceSnap[] {
-    return [...this.faceSnaps];
+  getFaceSnaps(): Observable<FaceSnap[]> {
+    return this.http.get<FaceSnap[]>('http://localhost:3000/facesnaps');
   }
 
   getFaceSnapsById(faceSnapId: string): FaceSnap {
@@ -51,5 +56,31 @@ export class FaceSnapService {
     const faceSnap = this.getFaceSnapsById(faceSnapId);
     faceSnap.snap(snapType);
   }
+
+  addFaceSnap(formValue: { title: string, description: string, imageUrl: string, location?: string }): void {
+    const faceSnap: FaceSnap = {
+      ...formValue,
+      snaps: 0,
+      createdAt: new Date(),
+      id: this.faceSnaps[this.faceSnaps.length - 1].id + 1,
+      addSnap: function (): void {
+        throw new Error("Function not implemented.");
+      },
+      removeSnap: function (): void {
+        throw new Error("Function not implemented.");
+      },
+      snap: function (snapType: SnapType): void {
+        throw new Error("Function not implemented.");
+      },
+      setlocation: function (location: string): void {
+        throw new Error("Function not implemented.");
+      },
+      withlocation: function (location: string): FaceSnap {
+        throw new Error("Function not implemented.");
+      }
+    };
+    this.faceSnaps.push(faceSnap);
+}
+
 }
 
