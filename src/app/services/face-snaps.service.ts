@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { FaceSnap } from "../models/face-snap";
 import { SnapType } from "../models/snap-type.type";
 import { HttpClient } from "@angular/common/http";
-import { Observable } from "rxjs";
+import { concat, concatMap, map, Observable, switchMap } from "rxjs";
 
 @Injectable({
   providedIn: 'root',
@@ -10,76 +10,51 @@ import { Observable } from "rxjs";
 
 
 export class FaceSnapService {
+  private apiUrl = 'http://localhost:3000/facesnaps';
 
   constructor(private http: HttpClient) {}
 
-   faceSnaps: FaceSnap[] = [
-    new FaceSnap(
-      'archibald ',
-      'Mon meilleur ami depuis toujours !',
-      'https://cdn.pixabay.com/photo/2015/05/31/16/03/teddy-bear-792273_1280.jpg',
-      new Date(),
-      10
-    ),
-
-    new FaceSnap(
-      'Three Rock Mountain',
-      'Un endroit magnifique pour les randonnées.',
-      'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/Three_Rock_Mountain_Southern_Tor.jpg/2880px-Three_Rock_Mountain_Southern_Tor.jpg',
-      new Date(),
-      300
-    ).withlocation('à la montagne'),
-
-    new FaceSnap(
-      'Un bon repas',
-      'Mmmh que c\'est bon !',
-      'https://wtop.com/wp-content/uploads/2020/06/HEALTHYFRESH.jpg',
-      new Date(),
-      156
-    )
-  ];
+   faceSnaps: FaceSnap[] = [];
 
 
   getFaceSnaps(): Observable<FaceSnap[]> {
-    return this.http.get<FaceSnap[]>('http://localhost:3000/facesnaps');
+    return this.http.get<FaceSnap[]>(`${this.apiUrl}`);
   }
 
-  getFaceSnapsById(faceSnapId: string): FaceSnap {
-    const foundFaceSnap = this.faceSnaps.find(faceSnap => faceSnap.id === faceSnapId);
-    if (!foundFaceSnap) {
-      throw new Error('FaceSnap not found!');
-    }
-    return foundFaceSnap;
+  getFaceSnapsById(faceSnapId: number): Observable<FaceSnap> {
+    return this.http.get<FaceSnap>(`${this.apiUrl}/${faceSnapId}`);
+
   }
 
-  snapFaceSnapById(faceSnapId: string, snapType: SnapType): void {
-    const faceSnap = this.getFaceSnapsById(faceSnapId);
-    faceSnap.snap(snapType);
-  }
+  snapFaceSnapById(faceSnapId: number, snapType: 'snap' | 'unsnap'): Observable<FaceSnap> {
+    return this.getFaceSnapsById(faceSnapId).pipe(
+        map(faceSnap => ({
+            ...faceSnap,
+            snaps: faceSnap.snaps + (snapType === 'snap' ? 1 : -1)
+        })),
+        switchMap(updatedFaceSnap => this.http.put<FaceSnap>(
+            `${this.apiUrl}/${faceSnapId}`,
+            updatedFaceSnap)
+        )
+    );
+}
 
-  addFaceSnap(formValue: { title: string, description: string, imageUrl: string, location?: string }): void {
-    const faceSnap: FaceSnap = {
-      ...formValue,
-      snaps: 0,
-      createdAt: new Date(),
-      id: this.faceSnaps[this.faceSnaps.length - 1].id + 1,
-      addSnap: function (): void {
-        throw new Error("Function not implemented.");
-      },
-      removeSnap: function (): void {
-        throw new Error("Function not implemented.");
-      },
-      snap: function (snapType: SnapType): void {
-        throw new Error("Function not implemented.");
-      },
-      setlocation: function (location: string): void {
-        throw new Error("Function not implemented.");
-      },
-      withlocation: function (location: string): FaceSnap {
-        throw new Error("Function not implemented.");
-      }
-    };
-    this.faceSnaps.push(faceSnap);
+addFaceSnap(formValue: { title: string, description: string, imageUrl: string, location?: string }): Observable<FaceSnap> {
+  return this.getFaceSnaps().pipe(
+       map(facesnaps => [...facesnaps].sort((a,b) => a.id - b.id)), //trier le tableau
+       map(sortedFacesnaps => sortedFacesnaps[sortedFacesnaps.length - 1]), // prendre le dernier
+       map(previousFacesnap => ({// ajouter un au id et recuperr les données 
+        id: previousFacesnap.id + 1,  
+        ...formValue,
+          createdAt: new Date(),
+          snaps: 0,
+          
+      })),
+      concatMap(newFacesnap => this.http.post<FaceSnap>(
+          `${this.apiUrl}`,
+          newFacesnap)
+      )
+  );
 }
 
 }

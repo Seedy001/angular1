@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { map, Observable } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { FaceSnap } from '../models/face-snap';
 import { CommonModule, DatePipe, UpperCasePipe } from '@angular/common';
 import { FaceSnapService } from '../services/face-snaps.service';
@@ -49,8 +49,9 @@ export class NewFaceSnapComponent implements OnInit {
     this.urlRegex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&/=]*)/;
   }
   onSubmitForm() {
-    this.faceSnapSevice.addFaceSnap(this.snapForm.value);
-    this.router.navigateByUrl('/facesnaps');
+    this.faceSnapSevice.addFaceSnap(this.snapForm.value).pipe(
+    tap(() => this.router.navigateByUrl('/facesnaps'))  
+    ).subscribe();
   }
 
 

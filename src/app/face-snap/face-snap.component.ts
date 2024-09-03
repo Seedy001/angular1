@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FaceSnap } from '../models/face-snap';
-import { CurrencyPipe, DatePipe, DecimalPipe, NgClass, NgStyle, PercentPipe, TitleCasePipe, UpperCasePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe, NgClass, NgStyle, PercentPipe, TitleCasePipe, UpperCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
 
 
@@ -15,7 +15,8 @@ import { Router } from '@angular/router';
     DatePipe,
     DecimalPipe,
     CurrencyPipe,
-    PercentPipe
+    PercentPipe,
+    CommonModule
   ],
   templateUrl: './face-snap.component.html',
   styleUrl: './face-snap.component.scss'
